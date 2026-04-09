@@ -42,10 +42,12 @@ const Order = () => {
             .catch(err => console.error(err));
     }, []);
 
+    const categoryMap = { 'All': 'All', 'Starters': 'Starter', 'Mains': 'Main Course', 'Desserts': 'Dessert', 'Drinks': 'Drink' };
+
     const filteredItems = menuItems.filter(item =>
-        (category === 'All' || item.category === category) &&
+        (category === 'All' || item.category === categoryMap[category] || item.category === category) &&
         (item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.desc.toLowerCase().includes(searchTerm.toLowerCase()))
+            (item.desc || '').toLowerCase().includes(searchTerm.toLowerCase()))
     );
 
     const handleQuantityChange = (id, newQty) => {
@@ -90,7 +92,7 @@ const Order = () => {
                     {filteredItems.map(item => (
                         <div key={item.id} className="menu-item-card glass-card">
                             <div className="item-image-wrapper">
-                                <img src={item.image} alt={item.name} loading="lazy" />
+                                <img src={item.imageUrl || item.image} alt={item.name} loading="lazy" />
                                 <div className="item-tag">{item.category}</div>
                             </div>
 

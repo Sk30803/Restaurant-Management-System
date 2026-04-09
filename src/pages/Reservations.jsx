@@ -31,12 +31,20 @@ const INITIAL_TABLES = [
 ];
 
 const VISUAL_POSITIONS = [
-    { name: 'Alchemist Pod 1', pos: { top: '20%', left: '20%' }, type: 'Window' },
-    { name: 'Alchemist Pod 2', pos: { top: '20%', left: '50%' }, type: 'Booth' },
-    { name: 'Alchemist Pod 3', pos: { top: '20%', left: '80%' }, type: 'Window' },
-    { name: 'Gourmet Lounge', pos: { top: '50%', left: '35%' }, type: 'Private' },
-    { name: 'Gourmet Lounge 2', pos: { top: '50%', left: '65%' }, type: 'Private' },
-    { name: 'The Grand Table', pos: { top: '80%', left: '50%' }, type: 'Luxury' },
+    { name: 'Window 1', pos: { top: '15%', left: '20%' }, type: 'Window' },
+    { name: 'Window 2', pos: { top: '15%', left: '50%' }, type: 'Window' },
+    { name: 'Window 3', pos: { top: '15%', left: '80%' }, type: 'Window' },
+    
+    { name: 'Booth Alpha', pos: { top: '35%', left: '35%' }, type: 'Booth' },
+    { name: 'Booth Beta', pos: { top: '35%', left: '65%' }, type: 'Booth' },
+    
+    { name: 'Lounge 1', pos: { top: '55%', left: '20%' }, type: 'Private' },
+    { name: 'Lounge 2', pos: { top: '55%', left: '50%' }, type: 'Private' },
+    { name: 'Lounge 3', pos: { top: '55%', left: '80%' }, type: 'Private' },
+    
+    { name: 'Grand VIP', pos: { top: '75%', left: '35%' }, type: 'Luxury' },
+    { name: 'Banquet Hall', pos: { top: '75%', left: '65%' }, type: 'Luxury' },
+    { name: 'Centerpiece', pos: { top: '45%', left: '50%' }, type: 'Luxury' }
 ];
 
 const Reservations = () => {
@@ -252,7 +260,7 @@ const Reservations = () => {
                                     className={`pre-meal-card glass-card ${bookingData.preOrder[item.id] ? 'active' : ''}`}
                                     onClick={() => !bookingData.preOrder[item.id] && togglePreOrder(item.id)}
                                 >
-                                    <div className="card-image" style={{ backgroundImage: `url(${item.image})` }}>
+                                    <div className="card-image" style={{ backgroundImage: `url(${item.imageUrl || item.image})` }}>
                                         {bookingData.preOrder[item.id] && <div className="check-overlay"><Check /></div>}
                                     </div>
                                     <div className="card-info">
