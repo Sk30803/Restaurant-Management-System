@@ -38,6 +38,8 @@ export const CartProvider = ({ children }) => {
         }
     };
 
+    const clearCart = () => setCartItems({});
+
     const cartCount = Object.values(cartItems).reduce((a, b) => a + b, 0);
 
     return (
@@ -46,6 +48,7 @@ export const CartProvider = ({ children }) => {
             addToCart,
             removeFromCart,
             updateQuantity,
+            clearCart,
             isCartOpen,
             openCart,
             closeCart,

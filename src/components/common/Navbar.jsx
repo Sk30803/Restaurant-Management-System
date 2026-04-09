@@ -8,7 +8,7 @@ import './Navbar.css';
 const Navbar = () => {
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const { openCart, cartCount } = useCart();
+    const { openCart, cartCount, clearCart } = useCart();
     const { user, logout } = useAuth();
     const location = useLocation();
     const navigate = useNavigate();
@@ -58,6 +58,7 @@ const Navbar = () => {
                         </div>
                         <button className="login-trigger" style={{background: 'transparent', border:'none', cursor:'pointer'}} onClick={() => {
                             logout();
+                            clearCart();
                             navigate('/');
                         }}>
                             <LogOut size={22} />
@@ -92,6 +93,7 @@ const Navbar = () => {
                     {user ? (
                         <button onClick={() => {
                             logout();
+                            clearCart();
                             navigate('/');
                             setIsMobileMenuOpen(false);
                         }} style={{background:'transparent', color:'white', border:'none', fontSize:'1.2rem', textAlign:'left'}}>
