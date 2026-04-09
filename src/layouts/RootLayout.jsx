@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom';
 import Navbar from '../components/common/Navbar';
 import CartDrawer from '../components/common/CartDrawer';
 import { useCart } from '../context/CartContext';
+import { fetchWithAuth } from '../api';
 
 // Import menu data for the cart drawer
 import BurgerImage from '../assets/images/gourmet_burger_plate_1769975915068.png';
@@ -11,7 +12,7 @@ import RisottoImage from '../assets/images/truffle_risotto_closeup_1769976236482
 import CaesarImage from '../assets/images/caesar_salad_fresh_1769976250655.png';
 import CakeImage from '../assets/images/chocolate_lava_cake_dessert_1769976265084.png';
 
-const ITEMS_DATA = [
+const INITIAL_ITEMS_DATA = [
     { id: 1, name: 'Wagyu Gold Burger', price: 28, image: BurgerImage },
     { id: 2, name: 'Atlantic Glazed Salmon', price: 32, image: SalmonImage },
     { id: 3, name: 'Black Truffle Risotto', price: 24, image: RisottoImage },
@@ -24,6 +25,22 @@ const ITEMS_DATA = [
 
 const RootLayout = () => {
     const { isCartOpen, closeCart, cartItems, updateQuantity } = useCart();
+    const [menuData, setMenuData] = React.useState(INITIAL_ITEMS_DATA);
+
+    React.useEffect(() => {
+        fetchWithAuth('/api/dishes')
+            .then(res => {
+                if (res.data && res.data.length > 0) {
+                    // merge with images
+                    const merged = res.data.map(dbDish => {
+                        const staticDish = INITIAL_ITEMS_DATA.find(i => i.id === dbDish.id);
+                        return { ...dbDish, image: staticDish ? staticDish.image : BurgerImage };
+                    });
+                    setMenuData(merged);
+                }
+            })
+            .catch(err => console.error('Failed to load menu for cart:', err));
+    }, []);
 
     return (
         <div className="app-root-container">
@@ -37,7 +54,7 @@ const RootLayout = () => {
                 onClose={closeCart}
                 cartItems={cartItems}
                 updateQuantity={updateQuantity}
-                itemsData={ITEMS_DATA}
+                itemsData={menuData}
             />
 
             <main className="main-content-flow">

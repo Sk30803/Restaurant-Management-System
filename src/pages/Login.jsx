@@ -1,18 +1,39 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { fetchWithAuth } from '../api';
 
 const Login = () => {
     const navigate = useNavigate();
+    const { login } = useAuth();
     const [mode, setMode] = useState('login'); // 'login' or 'register'
-    const [role, setRole] = useState('customer');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [name, setName] = useState('');
+    const [phoneNumber, setPhoneNumber] = useState('');
+    const [error, setError] = useState('');
 
-    const handleAction = (e) => {
+    const handleAction = async (e) => {
         e.preventDefault();
-        if (mode === 'login') {
-            role === 'staff' ? navigate('/admin') : navigate('/');
-        } else {
-            alert('Account created! Please sign in.');
-            setMode('login');
+        setError('');
+        try {
+            if (mode === 'login') {
+                const res = await fetchWithAuth('/api/auth/login', {
+                    method: 'POST',
+                    body: JSON.stringify({ email, password })
+                });
+                login(res.data.user, res.data.token);
+                res.data.user.role === 'ADMIN' ? navigate('/admin') : navigate('/');
+            } else {
+                await fetchWithAuth('/api/auth/register', {
+                    method: 'POST',
+                    body: JSON.stringify({ name, email, password, phone_number: phoneNumber })
+                });
+                alert('Account created! Please sign in.');
+                setMode('login');
+            }
+        } catch (err) {
+            setError(err.message);
         }
     };
 
@@ -23,30 +44,27 @@ const Login = () => {
                 <h1 className="portal-title">{mode === 'login' ? 'Access Portal' : 'Create Identity'}</h1>
 
                 <form onSubmit={handleAction} className="portal-form">
+                    {error && <div style={{color: 'red', marginBottom: '1rem'}}>{error}</div>}
                     <div className="input-row">
-                        <input type="email" placeholder="EMAIL ADDRESS" className="portal-input" required />
+                        <input type="email" placeholder="EMAIL ADDRESS" className="portal-input" value={email} onChange={e => setEmail(e.target.value)} required />
                     </div>
                     {mode === 'register' && (
+                        <>
                         <div className="input-row animate-fade-in">
-                            <input type="text" placeholder="FULL NAME" className="portal-input" required />
+                            <input type="text" placeholder="FULL NAME" className="portal-input" value={name} onChange={e => setName(e.target.value)} required />
                         </div>
+                        <div className="input-row animate-fade-in">
+                            <input type="text" placeholder="PHONE NUMBER" className="portal-input" value={phoneNumber} onChange={e => setPhoneNumber(e.target.value)} required />
+                        </div>
+                        </>
                     )}
                     <div className="input-row">
-                        <input type="password" placeholder="SECRET KEY" className="portal-input" required />
+                        <input type="password" placeholder="SECRET KEY" className="portal-input" value={password} onChange={e => setPassword(e.target.value)} required />
                     </div>
 
                     {mode === 'login' && (
-                        <div className="role-selector">
-                            <button
-                                type="button"
-                                onClick={() => setRole('customer')}
-                                className={`role-btn ${role === 'customer' ? 'active' : ''}`}
-                            >GUEST</button>
-                            <button
-                                type="button"
-                                onClick={() => setRole('staff')}
-                                className={`role-btn ${role === 'staff' ? 'active' : ''}`}
-                            >STAFF</button>
+                        <div className="role-selector" style={{display: 'none'}}>
+                            {/* Role selector hidden, backend determines role */}
                         </div>
                     )}
 

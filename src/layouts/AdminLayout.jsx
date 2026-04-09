@@ -1,6 +1,6 @@
 import React from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, CalendarDays, ShoppingBag, Users, LogOut, Settings } from 'lucide-react';
+import { LayoutDashboard, CalendarDays, ShoppingBag, Users, LogOut, Settings, UserCircle } from 'lucide-react';
 import './AdminLayout.css';
 
 const AdminLayout = () => {
@@ -11,6 +11,7 @@ const AdminLayout = () => {
         { name: 'Reservations', path: '/admin/reservations', icon: <CalendarDays size={20} /> },
         { name: 'Orders', path: '/admin/orders', icon: <ShoppingBag size={20} /> },
         { name: 'Events', path: '/admin/events', icon: <Users size={20} /> },
+        { name: 'Users', path: '/admin/users', icon: <UserCircle size={20} /> },
         { name: 'Settings', path: '/admin/settings', icon: <Settings size={20} /> },
     ];
 

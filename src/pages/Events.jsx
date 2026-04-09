@@ -2,13 +2,32 @@ import React from 'react';
 import Button from '../components/common/Button';
 import Card from '../components/common/Card';
 import { Mail, Phone, Calendar, ArrowRight, ShieldCheck, MapPin } from 'lucide-react';
+import { fetchWithAuth } from '../api';
 import HeroImage from '../assets/images/hero_restaurant_ambience_1769975900791.png';
 import CateringImage from '../assets/images/truffle_risotto_closeup_1769976236482.png';
 
 const Events = () => {
-    const handleSubmit = (e) => {
+    const [formData, setFormData] = React.useState({
+        name: '', email: '', date: '', guests: '', type: 'Corporate Gala & Summit', details: ''
+    });
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        alert('Event inquiry sent! Our events coordinator will contact you shortly to plan your bespoke experience.');
+        try {
+            await fetchWithAuth('/api/caterings', {
+                method: 'POST',
+                body: JSON.stringify({
+                    eventName: formData.type,
+                    guestCount: parseInt(formData.guests) || 10,
+                    location: 'Main Sanctuary', // Default event location
+                    datetime: new Date(`${formData.date}T19:00:00`).toISOString(),
+                    menuItemIds: [] // Leaving empty to avoid Prisma nested connect errors on hardcoded fake IDs
+                })
+            });
+            alert('Event inquiry sent! Our events coordinator will contact you shortly to plan your bespoke experience.');
+        } catch (err) {
+            alert('Failed to send inquiry: ' + err.message);
+        }
     };
 
     return (
@@ -29,26 +48,26 @@ const Events = () => {
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
                                 <div className="input-field-group" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                                     <label style={{ fontSize: '0.7rem', opacity: 0.5, letterSpacing: '0.2em', fontWeight: 700 }}>FULL NAME</label>
-                                    <input type="text" className="refined-input" placeholder="e.g. Alexander Pierce" required />
+                                    <input type="text" className="refined-input" placeholder="e.g. Alexander Pierce" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} required />
                                 </div>
                                 <div className="input-field-group" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                                     <label style={{ fontSize: '0.7rem', opacity: 0.5, letterSpacing: '0.2em', fontWeight: 700 }}>EMAIL ADDRESS</label>
-                                    <input type="email" className="refined-input" placeholder="contact@domain.com" required />
+                                    <input type="email" className="refined-input" placeholder="contact@domain.com" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} required />
                                 </div>
                             </div>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
                                 <div className="input-field-group" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                                     <label style={{ fontSize: '0.7rem', opacity: 0.5, letterSpacing: '0.2em', fontWeight: 700 }}>TARGET DATE</label>
-                                    <input type="date" className="refined-input" required />
+                                    <input type="date" className="refined-input" value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} required />
                                 </div>
                                 <div className="input-field-group" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                                     <label style={{ fontSize: '0.7rem', opacity: 0.5, letterSpacing: '0.2em', fontWeight: 700 }}>EXPECTED GUESTS</label>
-                                    <input type="number" className="refined-input" min="5" placeholder="Minimum 5" />
+                                    <input type="number" className="refined-input" min="5" placeholder="Minimum 5" value={formData.guests} onChange={e => setFormData({...formData, guests: e.target.value})} required />
                                 </div>
                             </div>
                             <div className="input-field-group" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                                 <label style={{ fontSize: '0.7rem', opacity: 0.5, letterSpacing: '0.2em', fontWeight: 700 }}>EVENT ARCHITECTURE</label>
-                                <select className="refined-input select-dark">
+                                <select className="refined-input select-dark" value={formData.type} onChange={e => setFormData({...formData, type: e.target.value})} required>
                                     <option value="" disabled selected>Select event type...</option>
                                     <option>Corporate Gala & Summit</option>
                                     <option>Private Birthday Celebration</option>
@@ -63,6 +82,7 @@ const Events = () => {
                                     rows="5"
                                     placeholder="Describe your desired atmosphere, theme, and requirements..."
                                     style={{ resize: 'none' }}
+                                    value={formData.details} onChange={e => setFormData({...formData, details: e.target.value})}
                                 ></textarea>
                             </div>
                             <button type="submit" className="refined-submit-btn">

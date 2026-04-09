@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useCart } from '../context/CartContext';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, CreditCard, Banknote, Truck, ShoppingBasket, MapPin, ChevronDown } from 'lucide-react';
+import { fetchWithAuth } from '../api';
 import './Checkout.css';
 
 const BRANCHES = [
@@ -25,7 +26,7 @@ const Checkout = () => {
         address: ''
     });
 
-    const MENU_DATA = [
+    const INITIAL_MENU_DATA = [
         { id: 1, name: 'Wagyu Gold Burger', price: 28 },
         { id: 2, name: 'Atlantic Glazed Salmon', price: 32 },
         { id: 3, name: 'Black Truffle Risotto', price: 24 },
@@ -35,9 +36,16 @@ const Checkout = () => {
         { id: 8, name: 'Velvet Espresso Martini', price: 16 },
         { id: 9, name: 'Mango Lassi Silk', price: 9 },
     ];
+    const [menuData, setMenuData] = useState(INITIAL_MENU_DATA);
+
+    React.useEffect(() => {
+        fetchWithAuth('/api/dishes')
+            .then(res => setMenuData(res.data || INITIAL_MENU_DATA))
+            .catch(err => console.error(err));
+    }, []);
 
     const subtotal = Object.entries(cartItems).reduce((sum, [id, qty]) => {
-        const item = MENU_DATA.find(i => i.id === parseInt(id));
+        const item = menuData.find(i => i.id === parseInt(id));
         return sum + (item ? item.price * qty : 0);
     }, 0);
 
@@ -48,9 +56,26 @@ const Checkout = () => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        setStep(2);
+        try {
+            const items = Object.entries(cartItems).map(([id, qty]) => ({
+                dishId: parseInt(id),
+                quantity: qty
+            }));
+            await fetchWithAuth('/api/orders', {
+                method: 'POST',
+                body: JSON.stringify({
+                    location: orderType === 'delivery' ? formData.address : selectedBranch,
+                    type: orderType.toUpperCase(),
+                    paymentMethod: 'ONLINE',
+                    items
+                })
+            });
+            setStep(2);
+        } catch (err) {
+            alert('Failed to place order: ' + err.message);
+        }
     };
 
     if (step === 2) {
@@ -86,7 +111,7 @@ const Checkout = () => {
                         <div className="receipt-section">
                             <h4>Summary</h4>
                             {Object.entries(cartItems).map(([id, qty]) => {
-                                const item = MENU_DATA.find(i => i.id === parseInt(id));
+                                const item = menuData.find(i => i.id === parseInt(id));
                                 return (
                                     <div key={id} className="receipt-row">
                                         <span>{qty}x {item?.name}</span>
@@ -225,7 +250,7 @@ const Checkout = () => {
                         <h3>Order Summary</h3>
                         <div className="summary-items">
                             {Object.entries(cartItems).map(([id, qty]) => {
-                                const item = MENU_DATA.find(i => i.id === parseInt(id));
+                                const item = menuData.find(i => i.id === parseInt(id));
                                 return (
                                     <div key={id} className="summary-item">
                                         <div>

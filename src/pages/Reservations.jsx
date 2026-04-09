@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ShoppingBag, Plus, Minus, Search, Check, Utensils, Calendar, Users, Clock, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useCart } from '../context/CartContext';
+import { fetchWithAuth } from '../api';
 import './Reservations.css';
 
 // Menu items for pre-ordering
@@ -10,7 +10,7 @@ import RisottoImage from '../assets/images/truffle_risotto_closeup_1769976236482
 import CaesarImage from '../assets/images/caesar_salad_fresh_1769976250655.png';
 import CakeImage from '../assets/images/chocolate_lava_cake_dessert_1769976265084.png';
 
-const MENU_DATA = [
+const INITIAL_MENU_DATA = [
     { id: 1, name: 'Wagyu Gold Burger', price: 28, image: BurgerImage },
     { id: 2, name: 'Atlantic Glazed Salmon', price: 32, image: SalmonImage },
     { id: 3, name: 'Black Truffle Risotto', price: 24, image: RisottoImage },
@@ -21,13 +21,22 @@ const MENU_DATA = [
     { id: 9, name: 'Mango Lassi Silk', price: 9, image: "https://images.unsplash.com/photo-1546173159-315724a31696?auto=format&fit=crop&w=800&q=80" },
 ];
 
-const TABLES = [
+const INITIAL_TABLES = [
     { id: 'T1', name: 'Alchemist Pod 1', capacity: 2, pos: { top: '20%', left: '20%' }, type: 'Window', status: 'available' },
     { id: 'T2', name: 'Alchemist Pod 2', capacity: 2, pos: { top: '20%', left: '50%' }, type: 'Booth', status: 'occupied' },
     { id: 'T3', name: 'Alchemist Pod 3', capacity: 2, pos: { top: '20%', left: '80%' }, type: 'Window', status: 'available' },
     { id: 'T4', name: 'Gourmet Lounge', capacity: 4, pos: { top: '50%', left: '35%' }, type: 'Private', status: 'available' },
     { id: 'T5', name: 'Gourmet Lounge', capacity: 4, pos: { top: '50%', left: '65%' }, type: 'Private', status: 'occupied' },
     { id: 'T6', name: 'The Grand Table', capacity: 6, pos: { top: '80%', left: '50%' }, type: 'Luxury', status: 'available' },
+];
+
+const VISUAL_POSITIONS = [
+    { name: 'Alchemist Pod 1', pos: { top: '20%', left: '20%' }, type: 'Window' },
+    { name: 'Alchemist Pod 2', pos: { top: '20%', left: '50%' }, type: 'Booth' },
+    { name: 'Alchemist Pod 3', pos: { top: '20%', left: '80%' }, type: 'Window' },
+    { name: 'Gourmet Lounge', pos: { top: '50%', left: '35%' }, type: 'Private' },
+    { name: 'Gourmet Lounge 2', pos: { top: '50%', left: '65%' }, type: 'Private' },
+    { name: 'The Grand Table', pos: { top: '80%', left: '50%' }, type: 'Luxury' },
 ];
 
 const Reservations = () => {
@@ -39,6 +48,42 @@ const Reservations = () => {
         selectedTable: null,
         preOrder: {}, // { itemId: quantity }
     });
+    const [menuData, setMenuData] = useState(INITIAL_MENU_DATA);
+    const [dbTables, setDbTables] = useState([]);
+
+    React.useEffect(() => {
+        fetchWithAuth('/api/dishes')
+            .then(res => setMenuData(res.data || INITIAL_MENU_DATA))
+            .catch(err => console.error('Failed to fetch menu:', err));
+        
+        fetchWithAuth('/api/tables')
+            .then(res => setDbTables(res.data || []))
+            .catch(err => console.error('Failed to fetch tables:', err));
+    }, []);
+
+    const tables = dbTables.length > 0 ? dbTables.map((t, i) => {
+        const visual = VISUAL_POSITIONS[i % VISUAL_POSITIONS.length];
+        
+        let isOccupied = !t.status; // Base status (e.g. out of order)
+        if (bookingData.date && bookingData.time && t.reservations && t.reservations.length > 0) {
+            const selectedTime = new Date(`${bookingData.date}T${bookingData.time}:00`).getTime();
+            const TWO_HOURS = 2 * 60 * 60 * 1000;
+            const hasConflict = t.reservations.some(res => {
+                const resTime = new Date(res.datetime).getTime();
+                return Math.abs(resTime - selectedTime) < TWO_HOURS;
+            });
+            if (hasConflict) isOccupied = true;
+        }
+
+        return {
+            id: `T${t.id}`,
+            name: `${visual.name} (DB)`, 
+            capacity: t.capacity,
+            pos: visual.pos,
+            type: visual.type,
+            status: isOccupied ? 'occupied' : 'available'
+        };
+    }) : INITIAL_TABLES;
 
     const handleNext = () => setStep(step + 1);
     const handleBack = () => setStep(step - 1);
@@ -153,7 +198,7 @@ const Reservations = () => {
                                 <div className="legend-item"><span className="dot occupied"></span> Occupied</div>
                             </div>
                             <div className="restaurant-floor-plan">
-                                {TABLES.map(table => (
+                                {tables.map(table => (
                                     <div
                                         key={table.id}
                                         className={`table-node ${table.status} ${bookingData.selectedTable === table.id ? 'selected' : ''}`}
@@ -179,7 +224,7 @@ const Reservations = () => {
                             {bookingData.selectedTable ? (
                                 <div className="info animate-fade-in">
                                     <MapPin size={20} className="accent" />
-                                    <span>Selected: <strong>{TABLES.find(t => t.id === bookingData.selectedTable)?.name}</strong></span>
+                                    <span>Selected: <strong>{tables.find(t => t.id === bookingData.selectedTable)?.name}</strong></span>
                                 </div>
                             ) : <span>Please select a table on the map to continue.</span>}
                             <button
@@ -201,7 +246,7 @@ const Reservations = () => {
                             <p>Select dishes to be prepared and served the moment you arrive.</p>
                         </div>
                         <div className="pre-meal-grid">
-                            {MENU_DATA.map(item => (
+                            {menuData.map(item => (
                                 <div
                                     key={item.id}
                                     className={`pre-meal-card glass-card ${bookingData.preOrder[item.id] ? 'active' : ''}`}
@@ -244,7 +289,7 @@ const Reservations = () => {
                                 <p>Date: <strong>{bookingData.date}</strong></p>
                                 <p>Time: <strong>{bookingData.time}</strong></p>
                                 <p>Guests: <strong>{bookingData.guests}</strong></p>
-                                <p>Table: <strong>{TABLES.find(t => t.id === bookingData.selectedTable)?.name} ({bookingData.selectedTable})</strong></p>
+                                <p>Table: <strong>{tables.find(t => t.id === bookingData.selectedTable)?.name} ({bookingData.selectedTable})</strong></p>
                             </div>
                             <div className="confirm-separator"></div>
                             <div className="confirm-section">
@@ -252,17 +297,17 @@ const Reservations = () => {
                                 {Object.keys(bookingData.preOrder).length > 0 ? (
                                     <ul className="pre-order-list">
                                         {Object.entries(bookingData.preOrder).map(([id, qty]) => {
-                                            const item = MENU_DATA.find(i => i.id === parseInt(id));
+                                            const item = menuData.find(i => i.id === parseInt(id));
                                             return (
                                                 <li key={id}>
-                                                    <span>{item.name} x {qty}</span>
-                                                    <span>${item.price * qty}</span>
+                                                    <span>{item?.name} x {qty}</span>
+                                                    <span>${(item?.price || 0) * qty}</span>
                                                 </li>
                                             );
                                         })}
                                         <li className="total-row">
                                             <span>Pre-Order Total</span>
-                                            <span>${Object.entries(bookingData.preOrder).reduce((sum, [id, qty]) => sum + (MENU_DATA.find(i => i.id === parseInt(id)).price * qty), 0)}</span>
+                                            <span>${Object.entries(bookingData.preOrder).reduce((sum, [id, qty]) => sum + ((menuData.find(i => i.id === parseInt(id))?.price || 0) * qty), 0)}</span>
                                         </li>
                                     </ul>
                                 ) : (
@@ -274,9 +319,31 @@ const Reservations = () => {
                             <p className="disclaimer">By confirming, you agree to our 24-hour cancellation policy.</p>
                             <button
                                 className="reservation-submit-btn final"
-                                onClick={() => {
-                                    alert('Your Table is Secured!');
-                                    window.location.href = '/';
+                                onClick={async () => {
+                                    try {
+                                        // tableId might be a number or string like 'T1' wait we need integer
+                                        // let's just parse the last char
+                                        const tId = parseInt(String(bookingData.selectedTable).replace('T', ''));
+                                        const preOrders = Object.entries(bookingData.preOrder).map(([id, qty]) => ({
+                                            dishId: parseInt(id),
+                                            quantity: qty
+                                        }));
+                                        const dt = new Date(`${bookingData.date}T${bookingData.time}:00`).toISOString();
+                                        
+                                        await fetchWithAuth('/api/reservations', {
+                                            method: 'POST',
+                                            body: JSON.stringify({
+                                                tableId: tId || 1,
+                                                datetime: dt,
+                                                preOrders
+                                            })
+                                        });
+                                        
+                                        alert('Your Table is Secured!');
+                                        window.location.href = '/';
+                                    } catch (err) {
+                                        alert('Failed to secure table: ' + err.message);
+                                    }
                                 }}
                             >
                                 Confirm Booking

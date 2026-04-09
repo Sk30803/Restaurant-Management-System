@@ -9,7 +9,12 @@ import Login from './pages/Login';
 import Checkout from './pages/Checkout';
 import AdminLayout from './layouts/AdminLayout';
 import Dashboard from './pages/admin/Dashboard';
+import ManageReservations from './pages/admin/ManageReservations';
+import ManageOrders from './pages/admin/ManageOrders';
+import ManageEvents from './pages/admin/ManageEvents';
+import ManageUsers from './pages/admin/ManageUsers';
 import { CartProvider } from './context/CartContext';
+import { AuthProvider } from './context/AuthContext';
 
 // Placeholders
 const Placeholder = ({ title }) => (
@@ -21,6 +26,7 @@ const Placeholder = ({ title }) => (
 
 function App() {
   return (
+    <AuthProvider>
     <CartProvider>
       <BrowserRouter>
         <Routes>
@@ -38,14 +44,16 @@ function App() {
           {/* Admin Routes */}
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<Dashboard />} />
-            <Route path="reservations" element={<Placeholder title="Manage Reservations" />} />
-            <Route path="orders" element={<Placeholder title="Manage Orders" />} />
-            <Route path="events" element={<Placeholder title="Manage Events" />} />
+            <Route path="reservations" element={<ManageReservations />} />
+            <Route path="orders" element={<ManageOrders />} />
+            <Route path="events" element={<ManageEvents />} />
+            <Route path="users" element={<ManageUsers />} />
             <Route path="settings" element={<Placeholder title="Settings" />} />
           </Route>
         </Routes>
       </BrowserRouter>
     </CartProvider>
+    </AuthProvider>
   );
 }
 

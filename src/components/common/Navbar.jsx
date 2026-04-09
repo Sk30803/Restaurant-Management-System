@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { ShoppingBag, User, Menu, X } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { ShoppingBag, User, Menu, X, LogOut } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
+import { useAuth } from '../../context/AuthContext';
 import './Navbar.css';
 
 const Navbar = () => {
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const { openCart, cartCount } = useCart();
+    const { user, logout } = useAuth();
     const location = useLocation();
+    const navigate = useNavigate();
 
     useEffect(() => {
         const handleScroll = () => setIsScrolled(window.scrollY > 20);
@@ -48,10 +51,25 @@ const Navbar = () => {
                         {cartCount > 0 && <span className="badge">{cartCount}</span>}
                     </button>
 
-                    <Link to="/login" className="login-trigger">
-                        <User size={22} />
-                        <span className="desktop-only">Sign In</span>
-                    </Link>
+                    {user ? (
+                        <>
+                        <div style={{color: 'var(--color-accent)', fontWeight: 'bold'}} className="desktop-only">
+                            {user.name}
+                        </div>
+                        <button className="login-trigger" style={{background: 'transparent', border:'none', cursor:'pointer'}} onClick={() => {
+                            logout();
+                            navigate('/');
+                        }}>
+                            <LogOut size={22} />
+                            <span className="desktop-only">Logout</span>
+                        </button>
+                        </>
+                    ) : (
+                        <Link to="/login" className="login-trigger">
+                            <User size={22} />
+                            <span className="desktop-only">Sign In</span>
+                        </Link>
+                    )}
 
                     <button className="mobile-toggle" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
                         {isMobileMenuOpen ? <X /> : <Menu />}
@@ -71,7 +89,17 @@ const Navbar = () => {
                             {link.name}
                         </Link>
                     ))}
-                    <Link to="/login" onClick={() => setIsMobileMenuOpen(false)}>Account</Link>
+                    {user ? (
+                        <button onClick={() => {
+                            logout();
+                            navigate('/');
+                            setIsMobileMenuOpen(false);
+                        }} style={{background:'transparent', color:'white', border:'none', fontSize:'1.2rem', textAlign:'left'}}>
+                            Logout ({user.name})
+                        </button>
+                    ) : (
+                        <Link to="/login" onClick={() => setIsMobileMenuOpen(false)}>Account</Link>
+                    )}
                 </div>
             </div>
         </nav>

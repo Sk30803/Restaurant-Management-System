@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ShoppingBag, Plus, Minus, Search } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { fetchWithAuth } from '../api';
 import './Order.css';
 
 // Existing local images
@@ -16,7 +17,7 @@ const MOJITO_IMAGE = "https://images.unsplash.com/photo-1551024709-8f23befc6f87?
 const MARTINI_IMAGE = "https://images.unsplash.com/photo-1545438102-799c3991ffb2?auto=format&fit=crop&w=800&q=80";
 const MANGO_IMAGE = "https://images.unsplash.com/photo-1546173159-315724a31696?auto=format&fit=crop&w=800&q=80";
 
-const MENU_ITEMS = [
+const INITIAL_MENU_ITEMS = [
     { id: 1, name: 'Wagyu Gold Burger', price: 28, category: 'Mains', image: BurgerImage, desc: 'Premium Wagyu beef, truffle aioli, 24k gold leaf, aged white cheddar.' },
     { id: 2, name: 'Atlantic Glazed Salmon', price: 32, category: 'Mains', image: SalmonImage, desc: 'Miso-glazed wild salmon, asparagus spears, purple potato mash.' },
     { id: 3, name: 'Black Truffle Risotto', price: 24, category: 'Mains', image: RisottoImage, desc: 'Slow-cooked Arborio rice, shaved black truffles, 36-month Parmesan.' },
@@ -33,8 +34,15 @@ const Order = () => {
     const [category, setCategory] = useState('All');
     const [searchTerm, setSearchTerm] = useState('');
     const { cartItems = {}, addToCart, updateQuantity, openCart } = useCart();
+    const [menuItems, setMenuItems] = useState(INITIAL_MENU_ITEMS);
 
-    const filteredItems = MENU_ITEMS.filter(item =>
+    React.useEffect(() => {
+        fetchWithAuth('/api/dishes')
+            .then(res => setMenuItems(res.data || INITIAL_MENU_ITEMS))
+            .catch(err => console.error(err));
+    }, []);
+
+    const filteredItems = menuItems.filter(item =>
         (category === 'All' || item.category === category) &&
         (item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             item.desc.toLowerCase().includes(searchTerm.toLowerCase()))
