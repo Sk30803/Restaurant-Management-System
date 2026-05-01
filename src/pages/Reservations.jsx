@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ShoppingBag, Plus, Minus, Search, Check, Utensils, Calendar, Users, Clock, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
 import { fetchWithAuth } from '../api';
 import './Reservations.css';
+import useScrollOnUpdate from '../hooks/useScrollOnUpdate';
 
 // Menu items for pre-ordering
 import BurgerImage from '../assets/images/gourmet_burger_plate_1769975915068.png';
@@ -58,6 +59,16 @@ const Reservations = () => {
     });
     const [menuData, setMenuData] = useState(INITIAL_MENU_DATA);
     const [dbTables, setDbTables] = useState([]);
+    const [error, setError] = useState(null);
+    const [isSubmitted, setIsSubmitted] = useState(false);
+    useScrollOnUpdate(step); 
+
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Limit bookings to 3 months in advance
+    const maxDate = new Date();
+    maxDate.setMonth(maxDate.getMonth() + 3);
+    const maxDateStr = maxDate.toISOString().split('T')[0];
 
     React.useEffect(() => {
         fetchWithAuth('/api/dishes')
@@ -95,6 +106,13 @@ const Reservations = () => {
 
     const handleNext = () => setStep(step + 1);
     const handleBack = () => setStep(step - 1);
+    const handleSkip = () => {
+        setBookingData(prev => ({
+            ...prev,
+            preOrder: {}
+        }));
+        handleNext();
+    };
 
     const togglePreOrder = (itemId) => {
         setBookingData(prev => {
@@ -124,6 +142,99 @@ const Reservations = () => {
     const isStep1Valid = bookingData.date && bookingData.time && bookingData.guests;
     const isStep2Valid = bookingData.selectedTable;
 
+    // --- SUCCESS STATE (Centered Modal) ---
+    if (isSubmitted) {
+        return (
+            <div style={{
+                position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                backgroundColor: 'rgba(0, 0, 0, 0.85)', backdropFilter: 'blur(10px)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                zIndex: 9999, padding: '20px'
+            }}>
+                <div className="glass-card" style={{ 
+                    maxWidth: '550px', width: '100%', padding: '3.5rem', textAlign: 'center',
+                    border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '24px',
+                    borderTop: '4px solid #22c55e' // Green accent top
+                }}>
+                    <div style={{ 
+                        width: '72px', height: '72px', backgroundColor: 'rgba(34, 197, 94, 0.1)', 
+                        borderRadius: '50%', display: 'flex', alignItems: 'center', 
+                        justifyContent: 'center', margin: '0 auto 1.5rem' 
+                    }}>
+                        <Check style={{ color: '#22c55e' }} size={36} />
+                    </div>
+                    <h2 style={{ fontSize: '2.25rem', fontWeight: 'bold', color: 'white', marginBottom: '1rem' }}>
+                        Passage Secured
+                    </h2>
+                    <p style={{ color: '#9ca3af', marginBottom: '2.5rem', fontSize: '1.15rem', lineHeight: '1.6' }}>
+                        Your table has been successfully reserved. A confirmation has been dispatched to your terminal.
+                    </p>
+                    <button 
+                        onClick={() => window.location.href = '/'} 
+                        className="reservation-submit-btn"
+                        style={{ width: '100%', padding: '1rem' }}
+                    >
+                        Return to Sanctuary
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    // --- ERROR STATE (Centered Modal) ---
+    if (error) {
+        return (
+            <div style={{
+                position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                backgroundColor: 'rgba(0, 0, 0, 0.85)', backdropFilter: 'blur(10px)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                zIndex: 10000, padding: '20px'
+            }}>
+                <div className="glass-card" style={{ 
+                    maxWidth: '550px', width: '100%', padding: '3.5rem', textAlign: 'center',
+                    border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '24px',
+                    borderTop: '4px solid #ef4444' // Red accent top
+                }}>
+                    <div style={{ 
+                        width: '72px', height: '72px', backgroundColor: 'rgba(239, 68, 68, 0.1)', 
+                        borderRadius: '50%', display: 'flex', alignItems: 'center', 
+                        justifyContent: 'center', margin: '0 auto 1.5rem' 
+                    }}>
+                        <Search style={{ color: '#ef4444' }} size={36} />
+                    </div>
+                    <h2 style={{ fontSize: '2rem', fontWeight: 'bold', color: 'white', marginBottom: '1rem' }}>
+                        Reservation Conflict
+                    </h2>
+                    <p style={{ color: '#9ca3af', marginBottom: '2.5rem', fontSize: '1.1rem' }}>
+                        {error}
+                    </p>
+                    <div style={{ display: 'flex', gap: '1rem' }}>
+                        <button 
+                            onClick={() => setError(null)} 
+                            className="reservation-submit-btn"
+                            style={{ flex: 1, padding: '1rem' }}
+                        >
+                            Try Again
+                        </button>
+                        <button 
+                            onClick={() => window.location.href = '/'} 
+                            className="reservation-submit-btn"
+                            style={{ 
+                                flex: 1, 
+                                background: 'transparent', 
+                                border: '1px solid rgba(255,255,255,0.2)', 
+                                color: 'white',
+                                padding: '1rem' 
+                            }}
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="reservations-container animate-fade-in">
             <div className="reservation-nav-header">
@@ -148,13 +259,17 @@ const Reservations = () => {
                             <p>Choose the date and time for your dining experience.</p>
                         </div>
                         <div className="reservation-form-grid glass-card">
-                            <div className="input-field-group">
+                           <div className="input-field-group">
                                 <label><Calendar size={16} /> Date</label>
                                 <input
                                     type="date"
-                                    className="reservation-input"
+                                    className="reservation-input clickable-date"
                                     value={bookingData.date}
+                                    min={today} // Prevents past dates
+                                    max={maxDateStr} // Prevents dates too far in the future
                                     onChange={(e) => setBookingData({ ...bookingData, date: e.target.value })}
+                                    // Triggers the picker when the input is clicked anywhere
+                                    onClick={(e) => e.target.showPicker?.()} 
                                 />
                             </div>
                             <div className="input-field-group">
@@ -280,7 +395,7 @@ const Reservations = () => {
                             ))}
                         </div>
                         <div className="action-row">
-                            <button className="reservation-submit-btn outline" onClick={handleNext}>Skip Pre-Order</button>
+                            <button className="reservation-submit-btn outline" onClick={handleSkip}>Skip Pre-Order</button>
                             <button className="reservation-submit-btn" onClick={handleNext}>Finalize Reservation</button>
                         </div>
                     </div>
@@ -289,6 +404,7 @@ const Reservations = () => {
                 {step === 4 && (
                     <div className="confirmation-final fade-in">
                         <div className="section-header">
+                            <button className="back-link" onClick={handleBack}><ChevronLeft size={16} /> Previous Step</button>
                             <h1>Review Your Passage</h1>
                         </div>
                         <div className="confirm-grid glass-card">
@@ -329,8 +445,6 @@ const Reservations = () => {
                                 className="reservation-submit-btn final"
                                 onClick={async () => {
                                     try {
-                                        // tableId might be a number or string like 'T1' wait we need integer
-                                        // let's just parse the last char
                                         const tId = parseInt(String(bookingData.selectedTable).replace('T', ''));
                                         const preOrders = Object.entries(bookingData.preOrder).map(([id, qty]) => ({
                                             dishId: parseInt(id),
@@ -346,11 +460,14 @@ const Reservations = () => {
                                                 preOrders
                                             })
                                         });
-                                        
-                                        alert('Your Table is Secured!');
-                                        window.location.href = '/';
+
+                                        // Success State
+                                        setIsSubmitted(true);
+                                        window.scrollTo(0, 0); 
                                     } catch (err) {
-                                        alert('Failed to secure table: ' + err.message);
+                                        // Error State: Capture message instead of alerting
+                                        setError(err.message || 'The system is unavailable. Please try later!');
+                                        window.scrollTo(0, 0);
                                     }
                                 }}
                             >

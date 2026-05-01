@@ -1,16 +1,31 @@
-# React + Vite
+# Gourmet Flow - Full-Stack Restaurant Management System
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Gourmet Flow is a full-stack web application designed to streamline restaurant operations, integrating a Node.js/Prisma backend with a reactive Tailwind-styled frontend to deliver a complete digital hospitality experience.
 
-Currently, two official plugins are available:
+## 📑 Project Structure & Documentation
+This project is structured as a monorepo to maintain a clean separation between the API logic and the user interface:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+*   **[Frontend Implementation](frontend.md):** Built with React + Vite. Focuses on Component Architecture, Global State Management, and API Integration.
+*   **[Backend Implementation](./backend/README.md):** Built with Node.js + Express + Prisma. Focuses on RBAC Security, State Machines, and Relational Database Integrity.
 
-## React Compiler
+## 🛠️ Tech Stack
+*   **Frontend:** React 18 (Vite), Tailwind CSS, Lucide Icons, Axios.
+*   **Backend:** Node.js, Express.js, PostgreSQL, Prisma ORM.
+*   **Security:** JWT (JSON Web Tokens), Bcrypt password hashing, Server-side Token Blacklisting.
+*   **Testing:** Jest & Supertest (Integration and Unit testing).
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 👥 Team Members (Group 8)
+*   **Rohan Riaz (26916)** 
+*   **Zain Sharjeel (26922)** 
+*   **Sahil Kumar (27149)** 
 
-## Expanding the ESLint configuration
+## 🤝 Team Contributions
+The project was developed collaboratively with a focus on modular ownership:
+*   **Rohan Riaz:** Responsible for the implementation of the **Table Reservations Workflow**. Handled the database schema design, documentation and API design.
+*   **Zain Sharjeel(UI/UX Lead):** Responsible for the implementation of the **Online Ordering Workflow**. Provided the main UI design and theme. Helped with testing.
+*   **Sahil Kumar:** Implemented the **Catering & Event Planning Workflow**. Helped with ensuring smooth integration of the frontend and backend.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## ✅ Core Workflows Implemented
+1.  **Table Reservations & Pre-Orders:** Interactive visual floor plan with **2-hour collision validation** and an integrated pre-order menu system.
+2.  **Online Ordering (Delivery/Takeaway):** Multi-step cart and checkout flow with fulfillment type selection and mock payment gateway integration.
+3.  **Catering & Event Planning:** Specialized logic for high-volume bookings featuring a **Price-per-Head calculation engine** and administrative approval pipelines.
