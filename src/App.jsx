@@ -14,6 +14,7 @@ import ManageReservations from './pages/admin/ManageReservations';
 import ManageOrders from './pages/admin/ManageOrders';
 import ManageEvents from './pages/admin/ManageEvents';
 import ManageUsers from './pages/admin/ManageUsers';
+import ManageDishes from './pages/admin/ManageDishes';
 import ScrollToTop from './components/common/ScrollToTop';
 import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
@@ -51,6 +52,7 @@ function App() {
               <Route path="reservations" element={<ManageReservations />} />
               <Route path="orders" element={<ManageOrders />} />
               <Route path="events" element={<ManageEvents />} />
+              <Route path="dishes" element={<ManageDishes />} />
               <Route path="users" element={<ManageUsers />} />
               <Route path="settings" element={<Placeholder title="Settings" />} />
             </Route>
