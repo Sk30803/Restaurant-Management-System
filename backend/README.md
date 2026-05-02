@@ -1,6 +1,6 @@
 # Restaurant Management System - Backend API
 
-This repository contains the backend implementation for the Restaurant Management System, developed as part of Milestone 3 for the Web-Based Application Development course. The system provides a robust API for managing table reservations, online food ordering, and catering event bookings, secured with JWT-based authentication and Role-Based Access Control (RBAC).
+This repository contains the backend implementation for the Restaurant Management System. The system provides a robust API for managing table reservations, online food ordering, and catering event bookings, secured with JWT-based authentication and Role-Based Access Control (RBAC).
 
 ## Project Architecture
 The backend follows a modular architecture to ensure separation of concerns and maintainability:
