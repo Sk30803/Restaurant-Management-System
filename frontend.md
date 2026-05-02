@@ -1,4 +1,4 @@
-# Gourmet Flow - Frontend Implementation (Milestone 4)
+# Gourmet Flow - Frontend Implementation
 
 This directory contains the reactive frontend for Gourmet Flow. The UI utilizes a modern aesthetic with a tech-focused design to ensure logical clarity and a premium user experience.
 
