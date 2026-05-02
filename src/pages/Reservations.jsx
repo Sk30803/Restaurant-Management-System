@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ShoppingBag, Plus, Minus, Search, Check, Utensils, Calendar, Users, Clock, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
-import { fetchWithAuth } from '../api';
+import { fetchWithAuth, AuthError } from '../api';
 import './Reservations.css';
 import useScrollOnUpdate from '../hooks/useScrollOnUpdate';
 
@@ -49,6 +50,7 @@ const VISUAL_POSITIONS = [
 ];
 
 const Reservations = () => {
+    const navigate = useNavigate();
     const [step, setStep] = useState(1);
     const [bookingData, setBookingData] = useState({
         date: '',
@@ -465,9 +467,12 @@ const Reservations = () => {
                                         setIsSubmitted(true);
                                         window.scrollTo(0, 0); 
                                     } catch (err) {
-                                        // Error State: Capture message instead of alerting
-                                        setError(err.message || 'The system is unavailable. Please try later!');
-                                        window.scrollTo(0, 0);
+                                        if (err instanceof AuthError) {
+                                            navigate('/login');
+                                        } else {
+                                            setError(err.message || 'The system is unavailable. Please try later!');
+                                            window.scrollTo(0, 0);
+                                        }
                                     }
                                 }}
                             >

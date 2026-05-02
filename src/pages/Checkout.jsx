@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useCart } from '../context/CartContext';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, CreditCard, Banknote, Truck, ShoppingBasket, MapPin, ChevronDown, Lock } from 'lucide-react';
-import { fetchWithAuth } from '../api';
+import { fetchWithAuth, AuthError } from '../api';
 import './Checkout.css';
 import useScrollOnUpdate from '../hooks/useScrollOnUpdate';
 
@@ -83,7 +83,11 @@ const Checkout = () => {
             clearCart();
             setStep(2);
         } catch (err) {
-            alert('Failed to place order: ' + err.message);
+            if (err instanceof AuthError) {
+                navigate('/login');
+            } else {
+                alert('Failed to place order: ' + err.message);
+            }
         }
     };
 

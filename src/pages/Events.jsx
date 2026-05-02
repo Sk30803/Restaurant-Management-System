@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Button from '../components/common/Button';
 import Card from '../components/common/Card';
 import { 
     Mail, Phone, Calendar, ArrowRight, ShieldCheck, 
     MapPin, Check, Plus, Minus, ChevronLeft, Search 
 } from 'lucide-react';
-import { fetchWithAuth } from '../api';
+import { fetchWithAuth, AuthError } from '../api';
 import useScrollOnUpdate from '../hooks/useScrollOnUpdate';
 
 // Assets
@@ -29,6 +30,7 @@ const MENU_DATA = [
 ];
 
 const Events = () => {
+    const navigate = useNavigate();
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState({
         name: '', 
@@ -112,8 +114,12 @@ const Events = () => {
             setIsSubmitted(true);
             window.scrollTo(0, 0);
         } catch (err) {
-            setError(err.message || 'The curation system is currently unavailable. Please attempt your proposal later.');
-            window.scrollTo(0, 0);
+            if (err instanceof AuthError) {
+                navigate('/login');
+            } else {
+                setError(err.message || 'The curation system is currently unavailable. Please attempt your proposal later.');
+                window.scrollTo(0, 0);
+            }
         }
     };
 
